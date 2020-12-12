@@ -1,22 +1,10 @@
 #!/bin/bash
 
-ROOT="https://ls11-www.cs.tu-dortmund.de/people/morris/graphkerneldatasets"
-DATASETS=( "COLLAB" "IMDB-BINARY" "IMDB-MULTI" "MUTAG" )
+URL="http://pascal.inrialpes.fr/data2/dchen/data/graphs.zip"
+DIR="data/raw"
 
-echo "Downloading the following datasets: ${DATASETS[*]}"
+# Download all the datasets
+wget -O "${DIR}/graphs.zip" "${URL}"
 
-for df in "${DATASETS[@]}"
-do
-	dir="data/${df}"
-	# Make directory if it does not exist
-	if [ ! -d "${dir}" ]
-	then
-		mkdir "$dir"
-	fi
-	# Download zip data inside the directory
-	wget -O "${dir}/${df}.zip" "${ROOT}/${df}.zip"
-	# Unzip the content
-	unzip -d "${dir}" "${dir}/${df}.zip"
-done
-
-echo "Download successful!"
+# Unzip the datasets in the data directory
+unzip -d "${DIR}" "${DIR}/graphs.zip"

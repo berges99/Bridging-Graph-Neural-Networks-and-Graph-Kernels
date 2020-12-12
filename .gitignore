@@ -1,5 +1,7 @@
 *.DS_Store
 __pycache__/
-data/*
 
-!*/.gitkeep
+# Ignore all files inside the data directory
+data/raw/*
+# Except .gitkeep files
+!data/raw/.gitkeep
