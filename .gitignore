@@ -2,6 +2,5 @@
 __pycache__/
 
 # Ignore all files inside the data directory
-data/raw/*
-# Except .gitkeep files
-!data/raw/.gitkeep
+data/
+# Ignore all files in the outputs directory
