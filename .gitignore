@@ -1,7 +1,8 @@
 *.DS_Store
+.ipynb_checkpoints/
 __pycache__/
 
 # Ignore all files inside the data directory
 data/
 # Ignore all files in the outputs directory
-# outputs/
+outputs/
