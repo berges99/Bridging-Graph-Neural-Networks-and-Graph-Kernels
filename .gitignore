@@ -4,3 +4,4 @@ __pycache__/
 # Ignore all files inside the data directory
 data/
 # Ignore all files in the outputs directory
+# outputs/
