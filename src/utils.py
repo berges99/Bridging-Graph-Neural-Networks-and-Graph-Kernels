@@ -28,7 +28,7 @@ def load_data(dataset, degree_as_tag):
         seed: random seed for random splitting of dataset
     '''
 
-    print('loading data')
+    #print('loading data')
     g_list = []
     label_dict = {}
     feat_dict = {}
@@ -114,10 +114,10 @@ def load_data(dataset, degree_as_tag):
         g.node_features[range(len(g.node_tags)), [tag2index[tag] for tag in g.node_tags]] = 1
 
 
-    print('# classes: %d' % len(label_dict))
-    print('# maximum node tag: %d' % len(tagset))
+    # print('# classes: %d' % len(label_dict))
+    # print('# maximum node tag: %d' % len(tagset))
 
-    print("# data: %d" % len(g_list))
+    # print("# data: %d" % len(g_list))
 
     return g_list, len(label_dict)
 
@@ -134,85 +134,90 @@ def loadData(dataset_name):
 		-
 
 	'''
-	ROOT = f'../data/{dataset_name}/{dataset_name}'
-	# Row-like graph indicator
-	with open(f'{ROOT}/{dataset_name}_graph_indicator.txt', 'r') as f:
-		graph_indicator = [int(i) - 1 for i in list(f)]
+	# Social networks datasets
+	if dataset_name in ['IMDBBINARY', 'IMDBMULTI', 'COLLAB']:
+	    g_list, _ = load_data(dataset_name, True)
+	# Bioinformatics datasets
+	elif dataset_name in ['MUTAG', 'PROTEINS', 'PTC', 'NCI1']:
+	    g_list, _ = load_data(dataset_name, False)
+	# Elsewise the dataset is not supported (as of yet)
+	else:
+		raise ValueError(f'Dataset ({dataset_name}) is not supported!')
+	return g_list
+	# ROOT = f'../data/{dataset_name}/{dataset_name}'
+	# # Row-like graph indicator
+	# with open(f'{ROOT}/{dataset_name}_graph_indicator.txt', 'r') as f:
+	# 	graph_indicator = [int(i) - 1 for i in list(f)]
 
-	##########
-	# Nodes
-	num_graphs = max(graph_indicator)
-	node_indices = []
-	offset = []
-	c = 0
-	# Identify the row numbers pertaining to each graph
-	for i in range(num_graphs + 1):
-		offset.append(c)
-		c_i = graph_indicator.count(i)
-		node_indices.append((c, c + c_i - 1))
-		c += c_i
-	# Init all the networkx graphs
-	graph_db = []
-	for i in node_indices:
-		g = nx.Graph()
-		for j in range(i[1] - i[0] + 1):
-			g.add_node(j)
-		graph_db.append(g)
+	# ##########
+	# # Nodes
+	# num_graphs = max(graph_indicator)
+	# node_indices = []
+	# offset = []
+	# c = 0
+	# # Identify the row numbers pertaining to each graph
+	# for i in range(num_graphs + 1):
+	# 	offset.append(c)
+	# 	c_i = graph_indicator.count(i)
+	# 	node_indices.append((c, c + c_i - 1))
+	# 	c += c_i
+	# # Init all the networkx graphs
+	# graph_db = []
+	# for i in node_indices:
+	# 	g = nx.Graph()
+	# 	for j in range(i[1] - i[0] + 1):
+	# 		g.add_node(j)
+	# 	graph_db.append(g)
 
-	##########
-	# Edges
-	with open(f'{ROOT}/{dataset_name}_A.txt', 'r') as f:
-		edges = [i.split(',') for i in list(f)]
-	edges = [
-		(int(e[0].strip()) - 1, int(e[1].strip()) - 1) for e in edges
-	]
-	edge_list = []
-	edgeb_list = []
-	for e in edges:
-		g_id = graph_indicator[e[0]]
-		g = graph_db[g_id]
-		off = offset[g_id]
-		#
-		if (e[0] - off, e[1] - off) not in list(g.edges()) and \
-		   (e[1] - off, e[0] - off) not in list(g.edges()):
-		    g.add_edge(e[0] - off, e[1] - off)
-		    edge_list.append((e[0] - off, e[1] - off))
-		    edgeb_list.append(True)
-		else:
-			edgeb_list.append(False)
+	# ##########
+	# # Edges
+	# with open(f'{ROOT}/{dataset_name}_A.txt', 'r') as f:
+	# 	edges = [i.split(',') for i in list(f)]
+	# edges = [
+	# 	(int(e[0].strip()) - 1, int(e[1].strip()) - 1) for e in edges
+	# ]
+	# edge_list = []
+	# edgeb_list = []
+	# for e in edges:
+	# 	g_id = graph_indicator[e[0]]
+	# 	g = graph_db[g_id]
+	# 	off = offset[g_id]
+	# 	#
+	# 	if (e[0] - off, e[1] - off) not in list(g.edges()) and \
+	# 	   (e[1] - off, e[0] - off) not in list(g.edges()):
+	# 	    g.add_edge(e[0] - off, e[1] - off)
+	# 	    edge_list.append((e[0] - off, e[1] - off))
+	# 	    edgeb_list.append(True)
+	# 	else:
+	# 		edgeb_list.append(False)
 
-	##########
-	# Node labels
+	# ##########
+	# # Node labels
 
-	##########
-	# Node attributes
+	# ##########
+	# # Node attributes
 
-	##########
-	# Edge labels
+	# ##########
+	# # Edge labels
 
-	##########
-	# Edge attributes
+	# ##########
+	# # Edge attributes
 
-	##########
-	# Classes
-	if os.path.exists(f'{ROOT}/{dataset_name}_graph_labels.txt'):
-		with open(f'{ROOT}/{dataset_name}_graph_labels.txt', 'r') as f:
-			classes = [i.strip() for i in list(f)]
-		# Allow multiple class graph labeling
-		classes = [i.split(',') for i in classes]
-		cs = []
-		for i, c in enumerate(classes):
-			cs.append([int(j.strip()) for j in c])
-		# Add the labels to the corresponding graphs in the main db
-		for i, g in enumerate(graph_db):
-			g.graph['classes'] = cs[i]
+	# ##########
+	# # Classes
+	# if os.path.exists(f'{ROOT}/{dataset_name}_graph_labels.txt'):
+	# 	with open(f'{ROOT}/{dataset_name}_graph_labels.txt', 'r') as f:
+	# 		classes = [i.strip() for i in list(f)]
+	# 	# Allow multiple class graph labeling
+	# 	classes = [i.split(',') for i in classes]
+	# 	cs = []
+	# 	for i, c in enumerate(classes):
+	# 		cs.append([int(j.strip()) for j in c])
+	# 	# Add the labels to the corresponding graphs in the main db
+	# 	for i, g in enumerate(graph_db):
+	# 		g.graph['classes'] = cs[i]
 
-	##########
-	# Targets
+	# ##########
+	# # Targets
 
-	return graph_db
-
-
-
-
-
+	# return graph_db

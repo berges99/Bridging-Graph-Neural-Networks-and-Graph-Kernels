@@ -1,4 +1,4 @@
-import sys
+import os
 import argparse
 import scipy as sp
 import numpy as np
@@ -7,8 +7,8 @@ from tqdm import tqdm
 from multiprocessing import Pool
 
 # Import user-defined packages
-import utils
 from gntk import GNTK
+from utils import loadData
 
 
 
@@ -47,8 +47,7 @@ def main():
 	# Read the script parameters
 	args = readArguments()
 	# Read the graphs and get the labels
-	#graphs = utils.loadData(args.dataset)
-	graphs, _ = utils.load_data(args.dataset, True)
+	graphs = loadData(args.dataset)
 	labels = np.array([g.label for g in graphs]).astype(int)
 	# Init the GNTK object
 	gntk = GNTK(
@@ -99,11 +98,18 @@ def main():
 		gram[i, j] = gntk_value
 		gram[j, i] = gntk_value
 	# Save the resulting kernel matrix at the specified location
+	output_name = f'{args.output_directory}/{args.dataset}'
+	# Create the directory if necessary
+	if not os.path.exists(output_name):
+		os.mkdir(output_name)
 	output_name = \
-		f'{args.output_directory}/{args.dataset}/block{args.num_block_operations}' + \
-		f'_layers{args.num_fc_layers}'
+		f'{args.output_directory}/{args.dataset}/blocks{args.num_block_operations}' + \
+		f'_layers{args.num_fc_layers}_{args.readout_operation}_{args.scaling_factor}'
 	np.save(f'{output_name}_gram.npy', gram)
 	np.save(f'{output_name}_labels.npy', labels)
+	print()
+	print(f'Gram matrix stored at: {output_name}_gram.npy')
+	print(f'Labels stored at: {output_name}_labels.npy')
 
 
 if __name__ == '__main__':

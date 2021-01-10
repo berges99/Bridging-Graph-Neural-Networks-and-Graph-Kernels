@@ -1,4 +1,3 @@
-
 import numpy as np
 import scipy as sp
 
@@ -14,7 +13,6 @@ class GNTK:
 		         num_fc_layers, 
 		         readout_operation, 
 		         scaling_factor):
-		''''''
 		self.num_block_operations = num_block_operations
 		self.num_fc_layers = num_fc_layers
 		self.readout_operation = readout_operation
@@ -59,9 +57,11 @@ class GNTK:
 		if D1 is None:
 			D1 = np.sqrt(np.diag(sigma))
 			D2 = np.copy(D1)
+		# Symmetric normalization of matrix sigma
 		sigma = sigma / np.expand_dims(D1, axis=1) / np.expand_dims(D2, axis=0)
 		# Ensure covariance values are bounded
 		sigma = np.clip(sigma, -1, 1)
+		# Perform update step
 		dot_sigma = (np.pi - np.arccos(sigma)) / np.pi
 		sigma = (sigma * (np.pi - np.arccos(sigma)) + np.sqrt(1 - sigma * sigma)) / np.pi
 		sigma = sigma * np.expand_dims(D1, axis=1) * np.expand_dims(D2, axis=0)
