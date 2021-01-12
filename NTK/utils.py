@@ -6,16 +6,15 @@ from torch import optim, nn
 
 
 
-
 class ZeroOutput(nn.Module):
 	'''Zero out the output of a model by subtracting out a copy of it.'''
 	def __init__(self, model):
 		super().__init__()
 		self.model = model
-		self.init_model = [copy.deepcopy(model).eval()]
+		self.init_model = copy.deepcopy(model).to('cuda:0')
 
 	def forward(self, x):
-		return self.model(x) - self.init_model[0](x)
+		return self.model(x) - self.init_model.eval()(x)
 
 
 class Scale(nn.Module):
@@ -68,7 +67,46 @@ def MLP(input_size,
 	return model
 
 
-def NTK(model, x):
+def GradientDescent(model, x, y, iters=100, lr=1e-03, eps=1e-10, alpha=1.0):
+	'''Run stochastic gradient descent using square loss on the model with the given data.
+	   It also updates the model instance.
+
+	Parameters:
+		- model: (nn.Module)
+		- x: (torch.tensor)
+		- y: (torch.tensor)
+		- iters: (int)
+		- lr: (float)
+		- eps: (float) lower bound for training loss
+		- alpha: (float) scaling/normalizing factor. The loss value is divided by alpha**2
+		
+	Returns:
+		- (list) loss values (unscaled)
+	
+	'''
+	# Init the pytorch SGD optimizer
+	opt = optim.SGD(model.parameters(), lr=lr)
+	# Return loss values
+	losses = []
+	# Start training with gradient descent
+	loss_item = -1
+	for i in range(iters):
+		# Compute model outputs
+		out = model(x)
+		# Normalize the loss
+		loss = 1 / (alpha**2) * nn.MSELoss()(out, y)
+		# Store the unnormalized losses
+		loss_item = loss.item() * alpha**2
+		losses.append(loss_item)
+		# Check stopping conditions
+		if loss_item < eps:	return losses
+		opt.zero_grad()
+		loss.backward()
+		opt.step()
+	return losses
+
+
+def NTK(model, x, device):
 	'''Compute the Neural Tangent Kernel of the model on the inputs x.
 
 	Parameters:
@@ -82,27 +120,18 @@ def NTK(model, x):
 	'''
 	# Forward the inputs to the model
 	out = model(x)
-	p, _ = nn.utils.parameters_to_vector(model.parameters()).shape
+	p, = nn.utils.parameters_to_vector(model.parameters()).shape
 	n, out_dim = out.shape
 	# Transposed Jacobian of the model
-	features = torch.zeros(n, p, requires_grad=False)
+	features = torch.zeros(n, p, requires_grad=False).to(device)
 	# Loop over data points
 	for i in range(n):
 		model.zero_grad()
 		out[i].backward(retain_graph=True)
-		p_grad = torch.tensor([], requires_grad=False)
-		for p in model_parameters():
+		p_grad = torch.tensor([], requires_grad=False).to(device)
+		for p in model.parameters():
 			p_grad = torch.cat((p_grad, p.grad.reshape(-1)))
 		features[i, :] = p_grad
 	# Matrix multiplication to obtain the tangent kernel
 	ntk = features @ features.t()
 	return features, ntk
-
-
-
-
-
-
-
-
-

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Specify all desired datasets
-DATASETS=("IMDBMULTI")
+DATASETS=("IMDBBINARY")
 
 
 # Perform small grid-search for the parameters of the GNTK
